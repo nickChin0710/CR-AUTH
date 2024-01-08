@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mgc_config>
+	<name>TcbCrgw1pFisc6773</name>
+	<type>SSP</type>
+	<description>TcbCrgw1pFisc6773</description>
+	
+	<logger>
+		<display>true</display>
+		<log_to_file>true</log_to_file>
+		<log_path>D:\Gateway\log\</log_path>
+		<log_filename>TcbCrgw1pFisc6773.log</log_filename>
+		<log_by_size>true</log_by_size>
+		<log_by_time>false</log_by_time>
+		<max_log_size>100485760</max_log_size> <!--10MB換一次檔名-->
+		<log_level>8</log_level>
+	</logger>		
+	
+	<thread_pool>
+		<minimum_threads>2</minimum_threads>            
+		<maximum_threads>2</maximum_threads>           
+		<thread_alive_time>60000</thread_alive_time>
+		<thread_max_busy_time>0</thread_max_busy_time>   
+	</thread_pool>   
+   	
+	<communication_agents>
+		<agent>  
+			<name>Source</name>
+			<class>com.tcb.authGateway.agent.FESCSingleServerSocketAgent</class>			  							
+			<ip>0.0.0.0</ip>
+			<port>5773</port>
+			<max_connections>8</max_connections>					
+			<target>Target</target>		
+							
+			<process_queue>
+				<factory>com.tcb.authGateway.queue.BlockQueueFactory</factory>
+				<maxQueueSize>2000</maxQueueSize>
+			</process_queue>
+			
+			<resend_queue>
+				<factory>com.tcb.authGateway.queue.BlockQueueFactory</factory>
+				<maxQueueSize>2000</maxQueueSize>
+			</resend_queue>
+			
+			<resend_agent>
+				<class>com.tcb.authGateway.agent.SimpleResendAgent</class>
+				<retry_limit>5</retry_limit>
+				<resend_interval>4000</resend_interval>
+			</resend_agent>			
+
+			<event_listener>										
+				<class>com.tcb.authGateway.agent.SSPSourceAgentEventListener</class>
+			</event_listener>
+			
+			<message_handler>
+				<class>com.tcb.authGateway.agent.ForwardMessageHandler</class>
+			</message_handler>			
+			
+			
+			<advanced_parameters>
+				<isQueueUndeliverableMessage>false</isQueueUndeliverableMessage>		<!-- 傳送失敗之訊息是否交給重送機制處理，預設為false -->	
+				<isMessageForwardDirectly>true</isMessageForwardDirectly>         <!-- 訊息是否要轉送，預設為true -->
+				<isAllowdDuplicateIP>true</isAllowdDuplicateIP>
+				<isReplaceOriginConnection>false</isReplaceOriginConnection>
+				<isSpecificOpenCommandNeeded>false</isSpecificOpenCommandNeeded>
+				<isKickUnopenedAllowedConnection>true</isKickUnopenedAllowedConnection>	     			
+				<disconnectDelay>5000</disconnectDelay>
+			</advanced_parameters>
+			
+			<heart_beat_handler>
+				<enabled>false</enabled>
+				<message>{00 00}</message>
+				<send_frequence>120000</send_frequence>    <!--每7分鐘送一次heart call-->
+				<receive_timeout>120000</receive_timeout>  <!--7分鐘未收到heart call回應中斷連線-->
+			</heart_beat_handler>
+		</agent>    
+		<agent>		
+			<name>Target</name>
+			<class>com.tcb.authGateway.agent.MultipleClientSocketAgent</class>		
+			<ip>172.26.254.252</ip>
+			<port>6773</port>
+			<target>Source</target>	
+			
+			<auto_reconnect>true</auto_reconnect>           		<!-- true|false  是否啟用自動重新連線 -->
+			<auto_reconnect_interval>5000</auto_reconnect_interval> 	<!-- 自動重新連線的間隔時間(ms) -->			
+								
+			<process_queue>
+				<factory>com.tcb.authGateway.queue.BlockQueueFactory</factory>
+				<maxQueueSize>2000</maxQueueSize>
+			</process_queue>			
+				
+			<event_listener>										
+				<class>com.tcb.authGateway.agent.MODGatewayAgentEventListener</class>
+			</event_listener>
+			<message_handler>
+				<class>com.tcb.authGateway.agent.ForwardMessageHandler</class>
+			</message_handler>					
+								
+			
+			<advanced_parameters>
+				<isAllowdDuplicateIP>true</isAllowdDuplicateIP>
+				<isReplaceOriginConnection>true</isReplaceOriginConnection>
+				<isSpecificOpenCommandNeeded>false</isSpecificOpenCommandNeeded>
+				<isKickUnopenedAllowedConnection>true</isKickUnopenedAllowedConnection>
+			</advanced_parameters>			
+		</agent>
+ 
+	</communication_agents>
+</mgc_config>
